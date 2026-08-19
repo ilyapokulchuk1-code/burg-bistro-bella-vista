@@ -10,20 +10,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Move Bella Vista Spezial to bottom
+      - name: Move Bella Vista Spezial into Fleischgerichte
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('menu.html')
-          s = p.read_text()
-          block = '<div class="special"><div><strong>Bella Vista Spezial</strong><div>Nur vom Huhn · mit Schinken, Champignons, Sahnesauce und Käse überbacken</div></div><span class="price">19,00 €</span></div>'
-          s = s.replace(block, '')
-          block2 = '<div class="special"><div><strong>BELLA VISTA SPEZIAL</strong><div>Nur vom Huhn · mit Schinken, Champignons, Sahnesauce und Käse überbacken</div></div><span class="price">19,00 €</span></div>'
-          s = s.replace('</main>', block2 + '</main>')
-          p.write_text(s)
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          special = '<div class="special"><div><b>Bella Vista Spezial</b><br><span>Nur vom Huhn · mit Schinken, Champignons, Sahnesauce und Käse überbacken</span></div><span class="price">19,00 €</span></div>'
+          if special not in s:
+              raise SystemExit('Bella Vista Spezial block not found')
+          s = s.replace(special, '', 1)
+          marker = '</div></div><p class="note">Alle Gerichte wahlweise mit Pommes oder Kroketten und Salat.</p>'
+          replacement = '</div></div>' + special + '<p class="note">Alle Gerichte wahlweise mit Pommes oder Kroketten und Salat.</p>'
+          if marker not in s:
+              raise SystemExit('Fleischgerichte insertion point not found')
+          s = s.replace(marker, replacement, 1)
+          p.write_text(s, encoding='utf-8')
           PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add menu.html
-          git commit -m 'Move Bella Vista Spezial to bottom' || exit 0
+          git add index.html
+          git commit -m 'Move Bella Vista Spezial into Fleischgerichte' || exit 0
           git push
