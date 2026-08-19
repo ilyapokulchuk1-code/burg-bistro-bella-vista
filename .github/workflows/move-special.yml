@@ -1,0 +1,29 @@
+name: Fix menu special position
+on:
+  push:
+    paths:
+      - menu-fix-trigger.txt
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Move Bella Vista Spezial to bottom
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('menu.html')
+          s = p.read_text()
+          block = '<div class="special"><div><strong>Bella Vista Spezial</strong><div>Nur vom Huhn · mit Schinken, Champignons, Sahnesauce und Käse überbacken</div></div><span class="price">19,00 €</span></div>'
+          s = s.replace(block, '')
+          block2 = '<div class="special"><div><strong>BELLA VISTA SPEZIAL</strong><div>Nur vom Huhn · mit Schinken, Champignons, Sahnesauce und Käse überbacken</div></div><span class="price">19,00 €</span></div>'
+          s = s.replace('</main>', block2 + '</main>')
+          p.write_text(s)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add menu.html
+          git commit -m 'Move Bella Vista Spezial to bottom' || exit 0
+          git push
