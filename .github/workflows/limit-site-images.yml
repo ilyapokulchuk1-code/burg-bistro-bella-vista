@@ -1,0 +1,36 @@
+name: Limit site images
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix-images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Keep only the three current photos
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old_about = '<div class="photos"><img class="tall" src="images/room.webp" alt="Gastraum"><img src="images/stone.webp" alt="Historische Steinwand"><img src="images/entrance.webp" alt="Eingang"></div>'
+          new_about = '<div class="photos"><img class="tall" src="images/room.webp" alt="Gastraum"><img src="images/stone.webp" alt="Historische Steinwand"><img src="images/hero.webp" alt="Burg Bistro Bella Vista"></div>'
+          if old_about in s:
+              s = s.replace(old_about, new_about, 1)
+          old_gallery = '<div class="gallery"><div class="g1"><img src="images/terrace.webp" alt="Terrasse"></div><div><img src="images/entrance.webp" alt="Eingang"></div><div><img src="images/bar.webp" alt="Bar und Empore"></div><div class="g4"><img src="images/night.webp" alt="Abendstimmung"></div><div><img src="images/room.webp" alt="Gastraum"></div><div><img src="images/stone.webp" alt="Historische Steinwand"></div><div><img src="images/outdoor.webp" alt="Außenbereich"></div></div>'
+          new_gallery = '<div class="gallery"><div class="g1"><img src="images/hero.webp" alt="Burg Bistro Bella Vista"></div><div><img src="images/room.webp" alt="Gastraum"></div><div class="g4"><img src="images/stone.webp" alt="Historische Steinwand"></div></div>'
+          if old_gallery in s:
+              s = s.replace(old_gallery, new_gallery, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit and remove temporary workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Use only three current restaurant photos' || true
+          git rm .github/workflows/limit-site-images.yml
+          git commit -m 'Remove temporary image workflow'
+          git push
