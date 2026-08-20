@@ -1,1 +1,1 @@
-setup gallery
+setup gallery 2
